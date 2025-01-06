@@ -1,19 +1,50 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"sync"
 )
 
-func shortURL(longURL []byte) ([]byte, error) {
+var (
+	// Хранение сокращённых URL-адресов
+	urlStore = make(map[string]string)
+	mu       sync.Mutex // Защита от конкуренции
+)
 
-	return longURL, nil
+func shortURL(longURL []byte) (string, error) {
+	bytes := make([]byte, 6) // 6 байт = 8 символов в base64
+	if _, err := rand.Read(bytes); err != nil {
+		log.Fatal(err)
+	}
+	// Кодируем байты в строку base64
+
+	shortURL64 := base64.URLEncoding.EncodeToString(bytes)
+
+	mu.Lock()
+	defer mu.Unlock()
+	urlStore[shortURL64] = string(longURL)
+
+	fmt.Println("longURL=", string(longURL))
+	fmt.Println("shortURL=", shortURL64)
+	return shortURL64, nil
+
 }
 
 func longURL(shortURL string) (string, error) {
-
-	return shortURL, nil
+	mu.Lock()
+	defer mu.Unlock()
+	longURL, ok := urlStore[shortURL]
+	if !ok {
+		return "", fmt.Errorf("Not found")
+	}
+	fmt.Println("shortURL=", shortURL)
+	fmt.Println("longURL=", longURL)
+	return longURL, nil
 }
 
 func postShortURL(res http.ResponseWriter, req *http.Request) {
@@ -33,7 +64,7 @@ func postShortURL(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "text/plain")
 		res.Header().Set("Content-Length", "30")
 		res.Write([]byte(resBody))
-		res.WriteHeader(http.StatusCreated)
+		//res.WriteHeader(http.StatusCreated)
 	} else {
 		res.WriteHeader(http.StatusBadRequest)
 	}
