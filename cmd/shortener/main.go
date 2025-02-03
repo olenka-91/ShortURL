@@ -73,7 +73,8 @@ func postShortURL(res http.ResponseWriter, req *http.Request) {
 func getUnShortURL(res http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodGet {
 		fmt.Println("запрос Get")
-		reqId := req.URL.Query().Get("id")
+		//reqId := req.URL.Query().Get("id")
+		reqId := req.URL.Path[1:]
 
 		resText, err := longURL(reqId)
 		if err != nil {
