@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"flag"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/olenka-91/shorturl/config"
 	"github.com/olenka-91/shorturl/internal/handlers"
 	"github.com/olenka-91/shorturl/internal/models"
 	"github.com/olenka-91/shorturl/internal/service"
@@ -21,8 +23,9 @@ func init() {
 }
 
 func main() {
+	flag.Parse()
 	log.Info("Creating services...")
-	serv := service.NewService()
+	serv := service.NewService(config.MyConfigs.BaseAddressURL)
 	log.Debug("Services created successfully")
 
 	log.Info("Creating handlers...")
@@ -36,7 +39,8 @@ func main() {
 	go func() {
 		log.Info("Starting the HTTP server...")
 		//	if err := server.Run(os.Getenv("APP_PORT"), handl.InitRoutes(), db); err != nil {
-		if err := server.Run(":8080", handl.InitRoutes()); err != nil {
+		//if err := server.Run(":8080", handl.InitRoutes()); err != nil
+		if err := server.Run(config.MyConfigs.ServiceURL, handl.InitRoutes()); err != nil {
 			if err != http.ErrServerClosed {
 				log.Fatalf("error occured while running http server: %s", err.Error())
 			}
