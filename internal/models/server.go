@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type Server struct {
 	httpServer *http.Server
 }
 
-func (s *Server) Run(port string, mux *http.ServeMux) error {
+func (s *Server) Run(port string, mux *chi.Mux) error {
 	fmt.Println("Сервер запускается")
 	return http.ListenAndServe(port, mux)
 }

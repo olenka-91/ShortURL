@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"encoding/json"
 )
 
 func (h *Handler) PostShortURL(res http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodPost {
-		fmt.Println("запрос Post")
 		reqBody, err := io.ReadAll(req.Body)
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
@@ -25,9 +26,57 @@ func (h *Handler) PostShortURL(res http.ResponseWriter, req *http.Request) {
 		}
 
 		res.Header().Set("Content-Type", "text/plain")
-		res.Header().Set("Content-Length", "30")
+		//res.Header().Set("Content-Length", "30")
 		res.WriteHeader(http.StatusCreated)
 		res.Write([]byte(resBody))
+
+	} else {
+		res.WriteHeader(http.StatusBadRequest)
+	}
+}
+
+type ShortURLInput struct {
+	URL string `json:"url"`
+}
+
+type ShortURLOutput struct {
+	Result string `json:"result"`
+}
+
+func (h *Handler) PostShortURLJSON(res http.ResponseWriter, req *http.Request) {
+	if req.Method == http.MethodPost {
+		input := ShortURLInput{}
+		if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if len(input.URL) == 0 {
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		resBody, err := h.services.ShortURL([]byte(input.URL))
+		if err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		output := ShortURLOutput{Result: resBody}
+		resp, err := json.Marshal(output)
+		if err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		res.Header().Set("Content-Type", "application/json")
+		//res.Header().Set("Content-Length", "30")
+		res.WriteHeader(http.StatusCreated)
+		_, err = res.Write(resp)
+		if err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
 	} else {
 		res.WriteHeader(http.StatusBadRequest)

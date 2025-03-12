@@ -12,10 +12,11 @@ type urlStoreTranslationService struct {
 	/*repo repository.Song*/
 	urlStore map[string]string
 	mu       sync.Mutex
+	baseURL  string
 }
 
-func NewUrlStoreTranslationService( /*r repository.Song*/ ) *urlStoreTranslationService {
-	return &urlStoreTranslationService{urlStore: make(map[string]string) /*repo: r*/}
+func NewUrlStoreTranslationService(sbaseURL string /*r repository.Song*/) *urlStoreTranslationService {
+	return &urlStoreTranslationService{urlStore: make(map[string]string), baseURL: sbaseURL /*repo: r*/}
 }
 
 func (r *urlStoreTranslationService) ShortURL(longURL []byte) (string, error) {
@@ -33,7 +34,7 @@ func (r *urlStoreTranslationService) ShortURL(longURL []byte) (string, error) {
 
 	fmt.Println("longURL=", string(longURL))
 	fmt.Println("shortURL=", shortURL64)
-	return shortURL64, nil
+	return r.baseURL + shortURL64, nil
 
 }
 
