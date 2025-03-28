@@ -9,9 +9,11 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/olenka-91/shorturl/config"
 	"github.com/olenka-91/shorturl/internal/handlers"
 	"github.com/olenka-91/shorturl/internal/models"
+	"github.com/olenka-91/shorturl/internal/repository"
 	"github.com/olenka-91/shorturl/internal/service"
 	log "github.com/sirupsen/logrus"
 )
@@ -24,17 +26,20 @@ func init() {
 
 func main() {
 	flag.Parse()
-	log.Info("Creating services...")
-	serv := service.NewService(config.MyConfigs.BaseAddressURL)
-	log.Debug("Services created successfully")
 
-	log.Info("Creating handlers...")
+	db, err := repository.NewPostgresDB(config.MyConfigs.DBDSN)
+	if err != nil {
+		log.Fatalf("error occured while connecting to DB: %s", err.Error())
+	}
+	defer db.Close()
+
+	repo := repository.NewRepository(db)
+
+	serv := service.NewService(config.MyConfigs.BaseAddressURL, repo)
+
 	handl := handlers.NewHandler(serv)
-	log.Debug("Handlers created successfully")
 
-	log.Info("Creating server...")
 	server := new(models.Server)
-	log.Debug("Server created successfully")
 
 	go func() {
 		log.Info("Starting the HTTP server...")

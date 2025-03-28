@@ -65,7 +65,7 @@ func TestPostShortURL(t *testing.T) {
 		},
 	}
 
-	serv := service.NewService("")
+	serv := service.NewService("", nil)
 	handl := NewHandler(serv)
 
 	for _, test := range tests {
@@ -136,7 +136,7 @@ func TestPostShortURLJSON(t *testing.T) {
 		},
 	}
 
-	serv := service.NewService("")
+	serv := service.NewService("", nil)
 	handl := NewHandler(serv)
 
 	for _, test := range tests {
@@ -161,7 +161,7 @@ func TestPostShortURLJSON(t *testing.T) {
 }
 
 func TestGetUnShortURL(t *testing.T) {
-	serv := service.NewService("")
+	serv := service.NewService("", nil)
 	handl := NewHandler(serv)
 	location := "yandex.ru"
 	urlID, _ := serv.ShortURL([]byte(location))

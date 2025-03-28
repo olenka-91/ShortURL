@@ -52,8 +52,8 @@ func (r *loggingResponseWriter) Header() http.Header {
 	return r.wr.Header()
 }
 
-func WithLogging(h http.HandlerFunc) http.HandlerFunc {
-	logFn := func(w http.ResponseWriter, r *http.Request) {
+func WithLogging(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
 		rd := responseData{
@@ -101,7 +101,5 @@ func WithLogging(h http.HandlerFunc) http.HandlerFunc {
 				"size", rw.respData.size,
 			)
 		}
-	}
-	// возвращаем функционально расширенный хендлер
-	return http.HandlerFunc(logFn)
+	})
 }

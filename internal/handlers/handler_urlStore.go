@@ -103,3 +103,17 @@ func (h *Handler) GetUnShortURL(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusBadRequest)
 	}
 }
+
+func (h *Handler) GetDBPing(res http.ResponseWriter, req *http.Request) {
+	if req.Method == http.MethodGet {
+		err := h.services.PingDB()
+		if err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+		} else {
+			res.WriteHeader(http.StatusOK)
+		}
+
+	} else {
+		res.WriteHeader(http.StatusBadRequest)
+	}
+}

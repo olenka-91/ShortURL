@@ -5,18 +5,23 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
-	"sync"
+
+	"github.com/olenka-91/shorturl/config"
+	"github.com/olenka-91/shorturl/internal/repository"
+	"github.com/olenka-91/shorturl/internal/storage"
 )
 
 type urlStoreTranslationService struct {
-	/*repo repository.Song*/
-	urlStore map[string]string
-	mu       sync.Mutex
-	baseURL  string
+	urlStore *storage.Storage
+	repo     repository.UrlStore
+
+	baseURL string
 }
 
-func NewUrlStoreTranslationService(sbaseURL string /*r repository.Song*/) *urlStoreTranslationService {
-	return &urlStoreTranslationService{urlStore: make(map[string]string), baseURL: sbaseURL /*repo: r*/}
+func NewUrlStoreTranslationService(sbaseURL string, r repository.UrlStore) *urlStoreTranslationService {
+	st := urlStoreTranslationService{urlStore: storage.NewStorage(), baseURL: sbaseURL, repo: r}
+	st.urlStore.LoadFromFile(config.MyConfigs.FileName)
+	return &st
 }
 
 func (r *urlStoreTranslationService) ShortURL(longURL []byte) (string, error) {
@@ -27,10 +32,7 @@ func (r *urlStoreTranslationService) ShortURL(longURL []byte) (string, error) {
 	// Кодируем байты в строку base64
 
 	shortURL64 := base64.URLEncoding.EncodeToString(bytes)
-
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.urlStore[shortURL64] = string(longURL)
+	r.urlStore.Add(shortURL64, string(longURL))
 
 	fmt.Println("longURL=", string(longURL))
 	fmt.Println("shortURL=", shortURL64)
@@ -39,13 +41,9 @@ func (r *urlStoreTranslationService) ShortURL(longURL []byte) (string, error) {
 }
 
 func (r *urlStoreTranslationService) LongURL(shortURL string) (string, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	longURL, ok := r.urlStore[shortURL]
-	if !ok {
-		return "", fmt.Errorf("Not found")
-	}
-	fmt.Println("shortURL=", shortURL)
-	fmt.Println("longURL=", longURL)
-	return longURL, nil
+	return r.urlStore.Get(shortURL)
+}
+
+func (r *urlStoreTranslationService) PingDB() error {
+	return r.repo.PingDB()
 }
