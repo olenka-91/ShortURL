@@ -45,7 +45,7 @@ func main() {
 		log.Info("Starting the HTTP server...")
 		//	if err := server.Run(os.Getenv("APP_PORT"), handl.InitRoutes(), db); err != nil {
 		//if err := server.Run(":8080", handl.InitRoutes()); err != nil
-		if err := server.Run(config.MyConfigs.ServiceURL, handl.InitRoutes()); err != nil {
+		if err := server.Run(config.MyConfigs.ServiceURL, handl.InitRoutes(), db); err != nil {
 			if err != http.ErrServerClosed {
 				log.Fatalf("error occured while running http server: %s", err.Error())
 			}
