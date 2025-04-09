@@ -8,14 +8,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type myConfigs struct {
+type MyConfigs struct {
 	ServiceURL     string
 	BaseAddressURL string
-	FileName       string
+	FilePath       string
 	DBDSN          string
 }
 
-var MyConfigs myConfigs
+var Configs MyConfigs
 
 func init() {
 
@@ -25,13 +25,13 @@ func init() {
 	ps := os.Getenv("DATABASE_DSN")
 
 	// используем init-функцию
-	flag.StringVar(&MyConfigs.ServiceURL, "a", ":8081", "default server adress")
-	flag.StringVar(&MyConfigs.BaseAddressURL, "b", "http://localhost:8000/", "base adress of short URL")
-	flag.StringVar(&MyConfigs.FileName, "f", "short-url-db.json", "It's a FilePATH")
+	flag.StringVar(&Configs.ServiceURL, "a", ":8081", "default server adress")
+	flag.StringVar(&Configs.BaseAddressURL, "b", "http://localhost:8000/", "base adress of short URL")
+	flag.StringVar(&Configs.FilePath, "f", "short-url-db.json", "It's a FilePATH")
 	if ps == "" {
-		flag.StringVar(&MyConfigs.DBDSN, "d", "host=localhost port=5432 user=postgres password=jkmrf1905 dbname=postgres sslmode=disable", "It's DSN string for DB")
+		flag.StringVar(&Configs.DBDSN, "d", "host=localhost port=5432 user=postgres password=jkmrf1905 dbname=postgres sslmode=disable", "It's DSN string for DB")
 	} else {
-		MyConfigs.DBDSN = ps
+		Configs.DBDSN = ps
 	}
 
 }

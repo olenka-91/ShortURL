@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/olenka-91/shorturl/config"
 	"github.com/olenka-91/shorturl/internal/repository"
 	"github.com/olenka-91/shorturl/internal/storage"
 )
@@ -20,7 +19,7 @@ type urlStoreTranslationService struct {
 
 func NewUrlStoreTranslationService(sbaseURL string, r repository.UrlStore) *urlStoreTranslationService {
 	st := urlStoreTranslationService{urlStore: storage.NewStorage(), baseURL: sbaseURL, repo: r}
-	st.urlStore.LoadFromFile(config.MyConfigs.FileName)
+	//	st.urlStore.LoadFromFile(config.MyConfigs.FileName)
 	return &st
 }
 

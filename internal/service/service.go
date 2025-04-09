@@ -1,6 +1,6 @@
 package service
 
-import "github.com/olenka-91/shorturl/internal/repository"
+import "github.com/olenka-91/shorturl/internal/storage/repository"
 
 type urlStoreTranslation interface {
 	ShortURL(longURL []byte) (string, error)
