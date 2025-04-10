@@ -13,8 +13,8 @@ import (
 	"github.com/olenka-91/shorturl/config"
 	"github.com/olenka-91/shorturl/internal/handlers"
 	"github.com/olenka-91/shorturl/internal/models"
-	"github.com/olenka-91/shorturl/internal/repository"
 	"github.com/olenka-91/shorturl/internal/service"
+	"github.com/olenka-91/shorturl/internal/storage"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -27,15 +27,13 @@ func init() {
 func main() {
 	flag.Parse()
 
-	db, err := repository.NewPostgresDB(config.MyConfigs.DBDSN)
+	stor, err := storage.NewStorage(config.Configs)
 	if err != nil {
-		log.Fatalf("error occured while connecting to DB: %s", err.Error())
+		log.Fatalf("error occured while create data storage: %s", err.Error())
 	}
-	defer db.Close()
 
-	repo := repository.NewRepository(db)
-
-	serv := service.NewService(config.MyConfigs.BaseAddressURL, repo)
+	serv := service.NewService(config.Configs.BaseAddressURL, stor)
+	defer serv.CloseDB()
 
 	handl := handlers.NewHandler(serv)
 
@@ -45,7 +43,7 @@ func main() {
 		log.Info("Starting the HTTP server...")
 		//	if err := server.Run(os.Getenv("APP_PORT"), handl.InitRoutes(), db); err != nil {
 		//if err := server.Run(":8080", handl.InitRoutes()); err != nil
-		if err := server.Run(config.MyConfigs.ServiceURL, handl.InitRoutes(), db); err != nil {
+		if err := server.Run(config.Configs.ServiceURL, handl.InitRoutes()); err != nil {
 			if err != http.ErrServerClosed {
 				log.Fatalf("error occured while running http server: %s", err.Error())
 			}
