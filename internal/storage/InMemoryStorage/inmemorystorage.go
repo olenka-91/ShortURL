@@ -1,8 +1,11 @@
 package inmemorystorage
 
 import (
+	"context"
 	"fmt"
 	"sync"
+
+	"github.com/olenka-91/shorturl/internal/models"
 )
 
 type InMemoryStorage struct {
@@ -14,14 +17,14 @@ func NewInMemoryStorage() *InMemoryStorage {
 	return &InMemoryStorage{urlStorage: make(map[string]string)}
 }
 
-func (s *InMemoryStorage) SaveShortURL(shortURL64, longURL string) error {
+func (s *InMemoryStorage) SaveShortURL(ctx context.Context, shortURL64, longURL string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.urlStorage[shortURL64] = string(longURL)
 	return nil
 }
 
-func (s *InMemoryStorage) GetOriginalURL(shortURL string) (string, error) {
+func (s *InMemoryStorage) GetOriginalURL(ctx context.Context, shortURL string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	longURL, ok := s.urlStorage[shortURL]
@@ -29,4 +32,8 @@ func (s *InMemoryStorage) GetOriginalURL(shortURL string) (string, error) {
 		return "", fmt.Errorf("Not found")
 	}
 	return longURL, nil
+}
+
+func (s *InMemoryStorage) PostURLBatch(ctx context.Context, batch []models.BatchForPost) ([]models.BatchOutput, error) {
+	return nil, nil
 }

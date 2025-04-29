@@ -2,10 +2,13 @@ package filestorage
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"sync"
+
+	"github.com/olenka-91/shorturl/internal/models"
 )
 
 type urlStoreStruct struct {
@@ -39,14 +42,14 @@ func NewFileStorage(fName string) *FileStorage {
 	return &fs
 }
 
-func (s *FileStorage) SaveShortURL(shortURL64, longURL string) error {
+func (s *FileStorage) SaveShortURL(ctx context.Context, shortURL64, longURL string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.urlStorage[shortURL64] = string(longURL)
 	return SaveToFile(shortURL64, longURL, s.fileName)
 }
 
-func (s *FileStorage) GetOriginalURL(shortURL string) (string, error) {
+func (s *FileStorage) GetOriginalURL(ctx context.Context, shortURL string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	longURL, ok := s.urlStorage[shortURL]
@@ -98,4 +101,8 @@ func SaveToFile(shortURL64, longURL, fileName string) error {
 
 	encoder := json.NewEncoder(file)
 	return encoder.Encode(&storeData)
+}
+
+func (s *FileStorage) PostURLBatch(ctx context.Context, batch []models.BatchForPost) ([]models.BatchOutput, error) {
+	return nil, nil
 }

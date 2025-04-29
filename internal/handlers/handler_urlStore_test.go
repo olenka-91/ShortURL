@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -164,7 +165,8 @@ func TestGetUnShortURL(t *testing.T) {
 	serv := service.NewService("", nil)
 	handl := NewHandler(serv)
 	location := "yandex.ru"
-	urlID, _ := serv.ShortURL([]byte(location))
+	ctx := context.Background()
+	urlID, _ := serv.ShortURL(ctx, []byte(location))
 
 	type want struct {
 		code        int

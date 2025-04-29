@@ -24,6 +24,7 @@ func (h *Handler) InitRoutes() *chi.Mux {
 
 	r.Post(`/`, (h.PostShortURL))
 	r.Post(`/api/shorten`, (h.PostShortURLJSON))
+	r.Post(`/api/shorten/batch`, (h.PostShortURLJSONBatch))
 	r.Get(`/{id}`, (h.GetUnShortURL))
 	r.Get(`/ping`, (h.GetDBPing))
 

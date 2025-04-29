@@ -8,14 +8,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/golang-migrate/migrate/v4/source/github"
-	"github.com/jmoiron/sqlx"
 )
 
 type Server struct {
 	httpServer *http.Server
 }
 
-func (s *Server) Run(port string, mux *chi.Mux, db *sqlx.DB) error {
+func (s *Server) Run(port string, mux *chi.Mux) error {
 
 	s.httpServer = &http.Server{
 		Addr:           port,

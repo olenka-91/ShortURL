@@ -1,17 +1,24 @@
 package service
 
-import "github.com/olenka-91/shorturl/internal/storage/repository"
+import (
+	"context"
+
+	"github.com/olenka-91/shorturl/internal/models"
+	"github.com/olenka-91/shorturl/internal/storage"
+)
 
 type urlStoreTranslation interface {
-	ShortURL(longURL []byte) (string, error)
-	LongURL(shortURL string) (string, error)
+	ShortURL(ctx context.Context, longURL []byte) (string, error)
+	LongURL(ctx context.Context, shortURL string) (string, error)
+	PostURLBatch(ctx context.Context, batch models.ArrBatchInput) ([]models.BatchOutput, error)
 	PingDB() error
+	CloseDB() error
 }
 
 type Service struct {
 	urlStoreTranslation
 }
 
-func NewService(sbaseURL string, r *repository.Repository) *Service {
-	return &Service{urlStoreTranslation: NewUrlStoreTranslationService(sbaseURL, r.UrlStore)}
+func NewService(sbaseURL string, st storage.Storage) *Service {
+	return &Service{urlStoreTranslation: NewUrlStoreTranslationService(sbaseURL, st)}
 }
