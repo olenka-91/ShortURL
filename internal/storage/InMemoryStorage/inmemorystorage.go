@@ -17,14 +17,14 @@ func NewInMemoryStorage() *InMemoryStorage {
 	return &InMemoryStorage{urlStorage: make(map[string]string)}
 }
 
-func (s *InMemoryStorage) SaveShortURL(ctx context.Context, shortURL64, longURL string) error {
+func (s *InMemoryStorage) SaveShortURL(ctx context.Context, shortURL64, longURL string, userID int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.urlStorage[shortURL64] = string(longURL)
 	return nil
 }
 
-func (s *InMemoryStorage) GetOriginalURL(ctx context.Context, shortURL string) (string, error) {
+func (s *InMemoryStorage) GetOriginalURL(ctx context.Context, shortURL string, userID int) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	longURL, ok := s.urlStorage[shortURL]
@@ -34,6 +34,6 @@ func (s *InMemoryStorage) GetOriginalURL(ctx context.Context, shortURL string) (
 	return longURL, nil
 }
 
-func (s *InMemoryStorage) PostURLBatch(ctx context.Context, batch []models.BatchForPost) ([]models.BatchOutput, error) {
+func (s *InMemoryStorage) PostURLBatch(ctx context.Context, batch []models.BatchForPost, userID int) ([]models.BatchOutput, error) {
 	return nil, nil
 }

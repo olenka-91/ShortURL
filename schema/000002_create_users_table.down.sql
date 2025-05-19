@@ -1,0 +1,1 @@
+ALTER TABLE URLs DROP COLUMN user_id;

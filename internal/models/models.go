@@ -2,6 +2,13 @@ package models
 
 import "fmt"
 
+const UserKey = "userID"
+
+type URLsForUser struct {
+	OriginalURL string `json:"original_url" db:"long"`
+	ShortURL    string `json:"short_url" db:"short"`
+}
+
 type BatchInput struct {
 	CorrelationID string `json:"correlation_id"`
 	OriginalURL   string `json:"original_url"`

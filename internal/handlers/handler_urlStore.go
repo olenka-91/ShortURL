@@ -11,9 +11,57 @@ import (
 	"github.com/olenka-91/shorturl/internal/models"
 )
 
+func FromContext(ctx context.Context) (int, bool) {
+	uid, ok := ctx.Value(models.UserKey).(int)
+	return uid, ok && uid != 0
+}
+
+func (h *Handler) UserURLs(res http.ResponseWriter, req *http.Request) {
+	uid, ok := FromContext(req.Context())
+	if !ok {
+		res.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	var URLs []models.URLsForUser
+
+	URLs, err := h.services.ListURLsByUser(req.Context(), uid)
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if len(URLs) == 0 {
+		res.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	resp, err := json.Marshal(URLs)
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	//res.Header().Set("Content-Length", "30")
+	res.WriteHeader(http.StatusOK)
+	_, err = res.Write(resp)
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+}
+
 func (h *Handler) PostShortURL(res http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodPost {
-		ctx := context.Background()
+		ctx := req.Context()
+		uid, ok := FromContext(ctx)
+		if !ok {
+			res.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		reqBody, err := io.ReadAll(req.Body)
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
@@ -25,7 +73,7 @@ func (h *Handler) PostShortURL(res http.ResponseWriter, req *http.Request) {
 		}
 
 		var MyErr *models.DBError
-		resBody, err := h.services.ShortURL(ctx, reqBody)
+		resBody, err := h.services.ShortURL(ctx, reqBody, uid)
 		if err != nil {
 			if errors.As(err, &MyErr) {
 				res.WriteHeader(http.StatusConflict)
@@ -57,6 +105,11 @@ type ShortURLOutput struct {
 
 func (h *Handler) PostShortURLJSON(res http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodPost {
+		uid, ok := FromContext(req.Context())
+		if !ok {
+			res.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 		input := ShortURLInput{}
 		if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
 			res.WriteHeader(http.StatusBadRequest)
@@ -69,8 +122,8 @@ func (h *Handler) PostShortURLJSON(res http.ResponseWriter, req *http.Request) {
 		}
 
 		var MyErr *models.DBError
-		ctx := context.Background()
-		resBody, err := h.services.ShortURL(ctx, []byte(input.URL))
+		ctx := req.Context()
+		resBody, err := h.services.ShortURL(ctx, []byte(input.URL), uid)
 		if err != nil {
 			if errors.As(err, &MyErr) {
 				res.WriteHeader(http.StatusConflict)
@@ -105,13 +158,19 @@ func (h *Handler) PostShortURLJSON(res http.ResponseWriter, req *http.Request) {
 func (h *Handler) PostShortURLJSONBatch(res http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodPost {
 		var err error
-		ctx := context.Background()
+		ctx := req.Context()
 		batchSize := 2
 		batch := make([]models.BatchInput, 0, batchSize)
 		batchOutput := make([]models.BatchOutput, 0, batchSize)
 		var output []models.BatchOutput
 		decoder := json.NewDecoder(req.Body)
 		defer req.Body.Close()
+
+		uid, ok := FromContext(req.Context())
+		if !ok {
+			res.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		if _, err := decoder.Token(); err != nil {
 			res.WriteHeader(http.StatusBadRequest)
@@ -132,7 +191,7 @@ func (h *Handler) PostShortURLJSONBatch(res http.ResponseWriter, req *http.Reque
 
 			batch = append(batch, input)
 			if len(batch) == batchSize {
-				if batchOutput, err = h.services.PostURLBatch(ctx, batch); err != nil {
+				if batchOutput, err = h.services.PostURLBatch(ctx, batch, uid); err != nil {
 					res.WriteHeader(http.StatusInternalServerError)
 					return
 				}
@@ -141,7 +200,7 @@ func (h *Handler) PostShortURLJSONBatch(res http.ResponseWriter, req *http.Reque
 			}
 		}
 
-		if batchOutput, err = h.services.PostURLBatch(ctx, batch); err != nil {
+		if batchOutput, err = h.services.PostURLBatch(ctx, batch, uid); err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -177,8 +236,14 @@ func (h *Handler) GetUnShortURL(res http.ResponseWriter, req *http.Request) {
 		//reqId := req.URL.Query().Get("id")
 		reqId := req.URL.Path[1:]
 
-		ctx := context.Background()
-		resText, err := h.services.LongURL(ctx, reqId)
+		uid, ok := FromContext(req.Context())
+		if !ok {
+			res.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		ctx := req.Context()
+		resText, err := h.services.LongURL(ctx, reqId, uid)
 		if err != nil {
 			res.WriteHeader(http.StatusBadRequest)
 			return

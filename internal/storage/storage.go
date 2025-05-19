@@ -13,15 +13,16 @@ import (
 )
 
 type Storage interface {
-	SaveShortURL(ctx context.Context, shortURL, originalURL string) error
-	GetOriginalURL(ctx context.Context, shortURL string) (string, error)
-	PostURLBatch(ctx context.Context, batch []models.BatchForPost) ([]models.BatchOutput, error)
+	SaveShortURL(ctx context.Context, shortURL, originalURL string, userID int) error
+	GetOriginalURL(ctx context.Context, shortURL string, userID int) (string, error)
+	PostURLBatch(ctx context.Context, batch []models.BatchForPost, userID int) ([]models.BatchOutput, error)
 }
 
 type DBStorage interface {
 	Storage
 	PingDB() error
 	CloseDB() error
+	ListURLsByUser(ctx context.Context, userID int) ([]models.URLsForUser, error)
 }
 
 func NewStorage(cfg config.MyConfigs) (Storage, error) {

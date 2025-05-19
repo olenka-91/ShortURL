@@ -30,14 +30,14 @@ func (r *urlStoreTranslationService) generateShortUrl() string {
 	return base64.URLEncoding.EncodeToString(bytes)
 }
 
-func (r *urlStoreTranslationService) ShortURL(ctx context.Context, longURL []byte) (string, error) {
+func (r *urlStoreTranslationService) ShortURL(ctx context.Context, longURL []byte, userID int) (string, error) {
 	shortURL64 := r.generateShortUrl()
-	return r.baseURL + shortURL64, r.urlStore.SaveShortURL(ctx, shortURL64, string(longURL))
+	return r.baseURL + shortURL64, r.urlStore.SaveShortURL(ctx, shortURL64, string(longURL), userID)
 
 }
 
-func (r *urlStoreTranslationService) LongURL(ctx context.Context, shortURL string) (string, error) {
-	return r.urlStore.GetOriginalURL(ctx, shortURL)
+func (r *urlStoreTranslationService) LongURL(ctx context.Context, shortURL string, userID int) (string, error) {
+	return r.urlStore.GetOriginalURL(ctx, shortURL, userID)
 }
 
 func (r *urlStoreTranslationService) PingDB() error {
@@ -54,7 +54,7 @@ func (r *urlStoreTranslationService) CloseDB() error {
 	return nil
 }
 
-func (r *urlStoreTranslationService) PostURLBatch(ctx context.Context, batch models.ArrBatchInput) ([]models.BatchOutput, error) {
+func (r *urlStoreTranslationService) PostURLBatch(ctx context.Context, batch models.ArrBatchInput, userID int) ([]models.BatchOutput, error) {
 	b := batch.Validate()
 	if b == false {
 		return nil, errors.New("Не найдено входных значений")
@@ -67,11 +67,23 @@ func (r *urlStoreTranslationService) PostURLBatch(ctx context.Context, batch mod
 		fullBatch[i].OriginalURL = input.OriginalURL
 		fullBatch[i].ShortURL = r.generateShortUrl()
 	}
-	outputBatch, err := r.urlStore.PostURLBatch(ctx, fullBatch)
+	outputBatch, err := r.urlStore.PostURLBatch(ctx, fullBatch, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	return outputBatch, nil
+}
+
+func (r *urlStoreTranslationService) ListURLsByUser(ctx context.Context, userID int) ([]models.URLsForUser, error) {
+	if st, ok := r.urlStore.(storage.DBStorage); ok {
+		output, err := st.ListURLsByUser(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+
+		return output, nil
+	}
+	return nil, nil
 
 }

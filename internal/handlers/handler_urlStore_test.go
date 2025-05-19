@@ -166,7 +166,8 @@ func TestGetUnShortURL(t *testing.T) {
 	handl := NewHandler(serv)
 	location := "yandex.ru"
 	ctx := context.Background()
-	urlID, _ := serv.ShortURL(ctx, []byte(location))
+
+	urlID, _ := serv.ShortURL(ctx, []byte(location), 1)
 
 	type want struct {
 		code        int

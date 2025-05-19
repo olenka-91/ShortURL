@@ -4,8 +4,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/olenka-91/shorturl/internal/models"
 	"go.uber.org/zap"
 )
+
+const userKey = "userID"
 
 var sugar zap.SugaredLogger
 
@@ -69,6 +72,9 @@ func WithLogging(h http.Handler) http.Handler {
 		uri := r.RequestURI
 		method := r.Method
 
+		ctx := r.Context()
+		userID, _ := ctx.Value(models.UserKey).(int)
+
 		h.ServeHTTP(rw, r) // обслуживание оригинального запроса
 
 		duration := time.Since(start)
@@ -81,6 +87,7 @@ func WithLogging(h http.Handler) http.Handler {
 				"status", rw.respData.status, // получаем перехваченный код статуса ответа
 				"size", rw.respData.size,
 				"Location", rw.respData.location,
+				"userID", userID,
 			)
 		} else //io.ReadAll(req.Body)
 		if method == http.MethodPost {
@@ -91,6 +98,7 @@ func WithLogging(h http.Handler) http.Handler {
 				"status", rw.respData.status, // получаем перехваченный код статуса ответа
 				"size", rw.respData.size,
 				"respString", rw.respData.respString,
+				"userID", userID,
 			)
 		} else {
 			sugar.Infoln(
@@ -99,6 +107,7 @@ func WithLogging(h http.Handler) http.Handler {
 				"duration", duration,
 				"status", rw.respData.status, // получаем перехваченный код статуса ответа
 				"size", rw.respData.size,
+				"userID", userID,
 			)
 		}
 	})

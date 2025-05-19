@@ -42,14 +42,14 @@ func NewFileStorage(fName string) *FileStorage {
 	return &fs
 }
 
-func (s *FileStorage) SaveShortURL(ctx context.Context, shortURL64, longURL string) error {
+func (s *FileStorage) SaveShortURL(ctx context.Context, shortURL64, longURL string, userID int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.urlStorage[shortURL64] = string(longURL)
 	return SaveToFile(shortURL64, longURL, s.fileName)
 }
 
-func (s *FileStorage) GetOriginalURL(ctx context.Context, shortURL string) (string, error) {
+func (s *FileStorage) GetOriginalURL(ctx context.Context, shortURL string, userID int) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	longURL, ok := s.urlStorage[shortURL]
@@ -103,6 +103,6 @@ func SaveToFile(shortURL64, longURL, fileName string) error {
 	return encoder.Encode(&storeData)
 }
 
-func (s *FileStorage) PostURLBatch(ctx context.Context, batch []models.BatchForPost) ([]models.BatchOutput, error) {
+func (s *FileStorage) PostURLBatch(ctx context.Context, batch []models.BatchForPost, userID int) ([]models.BatchOutput, error) {
 	return nil, nil
 }
